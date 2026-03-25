@@ -1,0 +1,30 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_47_508)">
+<rect width="200" height="200" fill="white"/>
+<rect x="66.6666" width="33.3333" height="33.3333" fill="black"/>
+<rect x="66.6667" y="66.6666" width="33.3333" height="33.3333" fill="black"/>
+<rect x="133.333" width="33.3333" height="33.3333" fill="black"/>
+<rect x="66.6664" y="133.333" width="33.3333" height="33.3333" fill="black"/>
+<rect x="-5.72205e-06" y="133.333" width="33.3333" height="33.3333" fill="black"/>
+<rect x="66.6666" y="33.3334" width="33.3333" height="33.3333" fill="black"/>
+<rect x="66.6667" y="100" width="33.3333" height="33.3333" fill="black"/>
+<rect x="133.333" y="33.3334" width="33.3333" height="33.3333" fill="black"/>
+<rect x="66.6664" y="166.667" width="33.3333" height="33.3333" fill="black"/>
+<rect x="-5.72205e-06" y="166.667" width="33.3333" height="33.3333" fill="black"/>
+<rect x="99.9999" width="33.3333" height="33.3333" fill="black"/>
+<rect x="100" y="66.6666" width="33.3333" height="33.3333" fill="black"/>
+<rect x="166.667" width="33.3333" height="33.3333" fill="black"/>
+<rect x="99.9998" y="133.333" width="33.3333" height="33.3333" fill="black"/>
+<rect x="33.3333" y="133.333" width="33.3333" height="33.3333" fill="black"/>
+<rect x="99.9999" y="33.3334" width="33.3333" height="33.3333" fill="black"/>
+<rect x="100" y="100" width="33.3333" height="33.3333" fill="black"/>
+<rect x="166.667" y="33.3334" width="33.3333" height="33.3333" fill="black"/>
+<rect x="99.9998" y="166.667" width="33.3333" height="33.3333" fill="black"/>
+<rect x="33.3333" y="166.667" width="33.3333" height="33.3333" fill="black"/>
+</g>
+<defs>
+<clipPath id="clip0_47_508">
+<rect width="200" height="200" fill="white"/>
+</clipPath>
+</defs>
+</svg>
