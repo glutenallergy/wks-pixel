@@ -322,16 +322,20 @@ function drawGridLines(
   const { totalCols, totalRows, cellSize, padding } = layout;
 
   if (cellSize >= 3) {
-    // More visible grid in paint mode so users can see the drawing surface
-    ctx.strokeStyle = mask === 'paint' ? 'rgba(128, 128, 128, 0.25)' : 'rgba(128, 128, 128, 0.08)';
+    // In paint mode, draw grid at the base-cell interval (every maxRes sub-cells)
+    // so the visible grid matches the actual paintable cells
+    const isPaint = mask === 'paint';
+    const step = isPaint ? maxRes : 1;
+
+    ctx.strokeStyle = isPaint ? 'rgba(128, 128, 128, 0.25)' : 'rgba(128, 128, 128, 0.08)';
     ctx.lineWidth = 0.5;
-    for (let c = 0; c <= totalCols; c++) {
+    for (let c = 0; c <= totalCols; c += step) {
       ctx.beginPath();
       ctx.moveTo(c * cellSize + 0.5, 0);
       ctx.lineTo(c * cellSize + 0.5, totalRows * cellSize);
       ctx.stroke();
     }
-    for (let r = 0; r <= totalRows; r++) {
+    for (let r = 0; r <= totalRows; r += step) {
       ctx.beginPath();
       ctx.moveTo(0, r * cellSize + 0.5);
       ctx.lineTo(totalCols * cellSize, r * cellSize + 0.5);
@@ -373,12 +377,17 @@ function drawPaintOverlay(
 
   // No fill/border overlay on painted cells — the rendered shapes are the visual feedback
 
-  // Draw symmetry axis lines
+  // Draw border around the active paint canvas area
   const ox = Math.round(padding * cellSize);
   const oy = Math.round(padding * cellSize);
   const contentRight = Math.round((padding + grid[0].length * maxRes) * cellSize);
   const contentBottom = Math.round((padding + grid.length * maxRes) * cellSize);
 
+  ctx.strokeStyle = 'rgba(128, 128, 128, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ox + 0.5, oy + 0.5, contentRight - ox - 1, contentBottom - oy - 1);
+
+  // Draw symmetry axis lines
   ctx.setLineDash([4, 4]);
   ctx.strokeStyle = 'rgba(73, 182, 255, 0.35)';
   ctx.lineWidth = 1;
