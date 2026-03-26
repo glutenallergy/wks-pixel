@@ -3,6 +3,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useAppState } from './hooks/useAppState';
 import { useCanvasRenderer } from './hooks/useCanvasRenderer';
 import { useExport } from './hooks/useExport';
+import { usePaintInteraction } from './hooks/usePaintInteraction';
 import { CanvasView } from './components/CanvasView';
 import { Panel } from './components/Panel';
 import { computeLayerLayout } from './renderer';
@@ -19,6 +20,7 @@ export default function App() {
 
   const compRef = useCanvasRenderer(canvasRef, wrapperRef, stateRef, needsResize, badgeRef);
   const { exportPNG, exportSVG } = useExport(canvasRef, stateRef, compRef);
+  usePaintInteraction({ canvasRef, compRef, stateRef, dispatch });
 
   const handleExportVideo = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -46,6 +48,8 @@ export default function App() {
     if (!comp || !canvas) return;
 
     const currentState = stateRef.current;
+    // Paint mode uses its own pointer handler
+    if (currentState.mask === 'paint') return;
     const topLayer = [...currentState.layers].reverse().find(l => l.visible);
     if (!topLayer) return;
 

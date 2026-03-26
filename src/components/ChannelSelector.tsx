@@ -24,8 +24,8 @@ export function ChannelSelector({ label, driven, source, hasImage, isImageMask, 
   }
 
   return (
-    <div className="flex items-center gap-2 py-0.5">
-      <Label className="text-[10px] text-muted-foreground w-16 shrink-0">{label}</Label>
+    <div className="flex items-center gap-3 py-0.5">
+      <Label className="text-[11px] text-muted-foreground w-14 shrink-0">{label}</Label>
       <ToggleGroup
         value={[active]}
         onValueChange={(values) => {
@@ -37,9 +37,10 @@ export function ChannelSelector({ label, driven, source, hasImage, isImageMask, 
             case 'Image': onSelect(true, 'image'); break;
           }
         }}
+        className="gap-1"
       >
         {options.map(opt => (
-          <ToggleGroupItem key={opt} value={opt} size="sm" className="text-[10px] px-2 h-6">
+          <ToggleGroupItem key={opt} value={opt} size="sm" className="text-[10px] px-2.5 h-7">
             {opt}
           </ToggleGroupItem>
         ))}

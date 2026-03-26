@@ -1,5 +1,3 @@
-import { forwardRef } from 'react';
-
 interface CanvasViewProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   wrapperRef: React.RefObject<HTMLDivElement | null>;
@@ -21,7 +19,7 @@ export function CanvasView({ canvasRef, wrapperRef, badgeRef, onCanvasClick }: C
       />
       <div
         ref={badgeRef}
-        className="absolute bottom-3 right-3 bg-black/70 text-muted-foreground font-mono text-[10px] px-2 py-1 rounded-sm pointer-events-none"
+        className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-foreground/50 text-[10px] px-2.5 py-1 rounded pointer-events-none tabular-nums tracking-wide"
       />
     </div>
   );

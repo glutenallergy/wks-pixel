@@ -24,7 +24,7 @@ function SymbolButton({ type, active, onToggle }: {
     <Toggle
       pressed={active}
       onPressedChange={onToggle}
-      className="aspect-square p-1 h-10 w-10"
+      className="aspect-square p-1.5 h-11 w-11 rounded-md border border-transparent aria-pressed:border-primary/40 aria-pressed:bg-primary/5"
       title={SYMBOL_LABELS[type]}
     >
       <canvas ref={canvasRef} width={32} height={32} className="w-full h-full" />
@@ -45,7 +45,7 @@ export function SymbolGrid({ activeSymbols, onChange }: SymbolGridProps) {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-1">
+    <div className="grid grid-cols-4 gap-1.5">
       {ALL_SYMBOLS.map(sym => (
         <SymbolButton
           key={sym}

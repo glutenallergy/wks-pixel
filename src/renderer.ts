@@ -63,7 +63,7 @@ function getOffscreen(id: string, w: number, h: number): HTMLCanvasElement {
 
 export function computeCompositingLayout(state: AppState, canvasW: number, canvasH: number): CompositingInfo {
   const imgDim = state.mask === 'image' ? getImageGridDimensions(state.imageGridSize, state.imageAspectRatio) : undefined;
-  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows);
+  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid);
   const baseCols = maskData[0].length;
   const baseRows = maskData.length;
 
@@ -157,7 +157,7 @@ function buildMaskLookup(
 ): Uint8Array {
   const { totalCols, totalRows, padding, baseCols, baseRows } = layout;
   const imgDim = state.mask === 'image' ? getImageGridDimensions(state.imageGridSize, state.imageAspectRatio) : undefined;
-  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows);
+  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid);
   const lookup = new Uint8Array(totalCols * totalRows);
   const contentCols = baseCols * layer.resolution;
 
@@ -317,6 +317,7 @@ function drawGridLines(
   ctx: CanvasRenderingContext2D,
   layout: LayoutInfo,
   maxRes: number,
+  mask?: string,
 ): void {
   const { totalCols, totalRows, cellSize, padding } = layout;
 
@@ -337,7 +338,8 @@ function drawGridLines(
     }
   }
 
-  if (cellSize >= 3 && maxRes <= 2) {
+  // Macro grid (4-cell WKS structure) — only for lockup/icon/full masks
+  if (cellSize >= 3 && maxRes <= 2 && mask !== 'paint') {
     ctx.strokeStyle = 'rgba(128, 128, 128, 0.2)';
     ctx.lineWidth = 1;
     const macroStep = 4 * maxRes;
@@ -352,6 +354,121 @@ function drawGridLines(
       ctx.moveTo(padding * cellSize, r * cellSize + 0.5);
       ctx.lineTo((totalCols - padding) * cellSize, r * cellSize + 0.5);
       ctx.stroke();
+    }
+  }
+}
+
+// ── Paint overlay (shows painted cells + symmetry axes) ───
+
+function drawPaintOverlay(
+  ctx: CanvasRenderingContext2D,
+  layout: LayoutInfo,
+  state: AppState,
+  maxRes: number,
+): void {
+  const { totalCols, totalRows, cellSize, padding } = layout;
+  const grid = state.paintGrid;
+  if (!grid || grid.length === 0) return;
+
+  // Draw subtle highlight on painted cells
+  const cw = maxRes * cellSize; // cell width/height in base-grid units
+  ctx.fillStyle = 'rgba(73, 182, 255, 0.08)';
+  for (let bRow = 0; bRow < grid.length; bRow++) {
+    for (let bCol = 0; bCol < grid[0].length; bCol++) {
+      if (grid[bRow][bCol] === 1) {
+        const x = (padding + bCol * maxRes) * cellSize;
+        const y = (padding + bRow * maxRes) * cellSize;
+        ctx.fillRect(x, y, cw, cw);
+      }
+    }
+  }
+
+  // Draw border on painted cells for clarity — align to grid lines
+  ctx.strokeStyle = 'rgba(73, 182, 255, 0.15)';
+  ctx.lineWidth = 1;
+  for (let bRow = 0; bRow < grid.length; bRow++) {
+    for (let bCol = 0; bCol < grid[0].length; bCol++) {
+      if (grid[bRow][bCol] === 1) {
+        const x = Math.round((padding + bCol * maxRes) * cellSize);
+        const y = Math.round((padding + bRow * maxRes) * cellSize);
+        const x2 = Math.round((padding + (bCol + 1) * maxRes) * cellSize);
+        const y2 = Math.round((padding + (bRow + 1) * maxRes) * cellSize);
+        ctx.strokeRect(x + 0.5, y + 0.5, x2 - x - 1, y2 - y - 1);
+      }
+    }
+  }
+
+  // Draw symmetry axis lines
+  const ox = Math.round(padding * cellSize);
+  const oy = Math.round(padding * cellSize);
+  const contentRight = Math.round((padding + grid[0].length * maxRes) * cellSize);
+  const contentBottom = Math.round((padding + grid.length * maxRes) * cellSize);
+
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(73, 182, 255, 0.35)';
+  ctx.lineWidth = 1;
+
+  if (state.paintSymmetry === 'mirror-x' || state.paintSymmetry === 'quad') {
+    const midX = Math.round((padding + grid[0].length * maxRes / 2) * cellSize) + 0.5;
+    ctx.beginPath();
+    ctx.moveTo(midX, oy);
+    ctx.lineTo(midX, contentBottom);
+    ctx.stroke();
+  }
+  if (state.paintSymmetry === 'mirror-y' || state.paintSymmetry === 'quad') {
+    const midY = Math.round((padding + grid.length * maxRes / 2) * cellSize) + 0.5;
+    ctx.beginPath();
+    ctx.moveTo(ox, midY);
+    ctx.lineTo(contentRight, midY);
+    ctx.stroke();
+  }
+
+  ctx.setLineDash([]);
+
+  // Draw brush cursor preview at hover position
+  const hoverCell = (state as any)._paintHoverCell as { col: number; row: number } | null;
+  if (hoverCell) {
+    const brushSize = state.paintBrushSize;
+    const brushOffset = Math.floor(brushSize / 2);
+
+    // Compute brush rect aligned to grid
+    const leftCol = hoverCell.col - brushOffset;
+    const topRow = hoverCell.row - brushOffset;
+    const bx = Math.round((padding + leftCol * maxRes) * cellSize);
+    const by = Math.round((padding + topRow * maxRes) * cellSize);
+    const bx2 = Math.round((padding + (leftCol + brushSize) * maxRes) * cellSize);
+    const by2 = Math.round((padding + (topRow + brushSize) * maxRes) * cellSize);
+
+    // Draw primary brush cursor
+    ctx.strokeStyle = 'rgba(73, 182, 255, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx + 0.5, by + 0.5, bx2 - bx - 1, by2 - by - 1);
+
+    // Draw mirrored brush cursors if symmetry is active
+    const gw = grid[0].length;
+    const gh = grid.length;
+    const mirrorLeftCol = gw - leftCol - brushSize;
+    const mirrorTopRow = gh - topRow - brushSize;
+
+    ctx.strokeStyle = 'rgba(73, 182, 255, 0.3)';
+    ctx.lineWidth = 1;
+
+    if (state.paintSymmetry === 'mirror-x' || state.paintSymmetry === 'quad') {
+      const mx = Math.round((padding + mirrorLeftCol * maxRes) * cellSize);
+      const mx2 = Math.round((padding + (mirrorLeftCol + brushSize) * maxRes) * cellSize);
+      ctx.strokeRect(mx + 0.5, by + 0.5, mx2 - mx - 1, by2 - by - 1);
+    }
+    if (state.paintSymmetry === 'mirror-y' || state.paintSymmetry === 'quad') {
+      const my = Math.round((padding + mirrorTopRow * maxRes) * cellSize);
+      const my2 = Math.round((padding + (mirrorTopRow + brushSize) * maxRes) * cellSize);
+      ctx.strokeRect(bx + 0.5, my + 0.5, bx2 - bx - 1, my2 - my - 1);
+    }
+    if (state.paintSymmetry === 'quad') {
+      const mx = Math.round((padding + mirrorLeftCol * maxRes) * cellSize);
+      const mx2 = Math.round((padding + (mirrorLeftCol + brushSize) * maxRes) * cellSize);
+      const my = Math.round((padding + mirrorTopRow * maxRes) * cellSize);
+      const my2 = Math.round((padding + (mirrorTopRow + brushSize) * maxRes) * cellSize);
+      ctx.strokeRect(mx + 0.5, my + 0.5, mx2 - mx - 1, my2 - my - 1);
     }
   }
 }
@@ -461,12 +578,18 @@ export function render(
   }
 
   // Grid lines on top (using maxRes layout)
+  const maxLayout = computeLayerLayout(
+    { resolution: maxRes } as LayerState,
+    baseCols, baseRows, compositingW, compositingH, dpr,
+  );
   if (state.showGrid) {
-    const maxLayout = computeLayerLayout(
-      { resolution: maxRes } as LayerState,
-      baseCols, baseRows, compositingW, compositingH, dpr,
-    );
     mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawGridLines(mainCtx, maxLayout, maxRes);
+    drawGridLines(mainCtx, maxLayout, maxRes, state.mask);
+  }
+
+  // Paint overlay (shows painted cells + symmetry axes)
+  if (state.mask === 'paint') {
+    mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawPaintOverlay(mainCtx, maxLayout, state, maxRes);
   }
 }

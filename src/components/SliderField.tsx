@@ -13,8 +13,8 @@ interface SliderFieldProps {
 
 export function SliderField({ label, min, max, step, value, format, onChange }: SliderFieldProps) {
   return (
-    <div className="flex items-center gap-2 py-0.5">
-      <Label className="text-[10px] text-muted-foreground w-16 shrink-0">{label}</Label>
+    <div className="flex items-center gap-3 py-0.5">
+      <Label className="text-[11px] text-muted-foreground w-14 shrink-0 tabular-nums">{label}</Label>
       <Slider
         value={[value]}
         min={min}
@@ -23,7 +23,7 @@ export function SliderField({ label, min, max, step, value, format, onChange }: 
         onValueChange={(v) => onChange(Array.isArray(v) ? v[0] : v)}
         className="flex-1"
       />
-      <span className="text-[10px] text-muted-foreground w-8 text-right shrink-0">{format(value)}</span>
+      <span className="text-[11px] text-foreground/60 w-10 text-right shrink-0 tabular-nums">{format(value)}</span>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import type { AppState, LayerState, ChannelSource } from '../state';
+import type { AppState, LayerState, ChannelSource, PaintSymmetry, PaintTool } from '../state';
 import type { SymbolType } from '../symbols';
 import type { GradientStop, PaletteEntry } from '../gradient';
 import type { MaskType } from '../masks';
-import { createDefaultLayer } from '../state';
+import { createDefaultLayer, createEmptyGrid } from '../state';
 import type { ImageAspectRatio } from '../state';
 import { createDefaultPalette } from '../gradient';
 
@@ -32,7 +32,15 @@ export type AppAction =
   | { type: 'SET_IMAGE_ASPECT_RATIO'; ratio: ImageAspectRatio }
   | { type: 'SET_IMAGE_SCALE'; scale: number }
   | { type: 'SET_IMAGE_PAN_X'; value: number }
-  | { type: 'SET_IMAGE_PAN_Y'; value: number };
+  | { type: 'SET_IMAGE_PAN_Y'; value: number }
+  | { type: 'SET_PAINT_CELLS'; cells: { row: number; col: number; value: 0 | 1 }[] }
+  | { type: 'SET_PAINT_GRID'; grid: number[][] }
+  | { type: 'CLEAR_PAINT_GRID' }
+  | { type: 'FILL_PAINT_GRID' }
+  | { type: 'SET_PAINT_GRID_SIZE'; width: number; height: number }
+  | { type: 'SET_PAINT_SYMMETRY'; symmetry: PaintSymmetry }
+  | { type: 'SET_PAINT_TOOL'; tool: PaintTool }
+  | { type: 'SET_PAINT_BRUSH_SIZE'; size: number };
 
 const IMAGE_LAYER_PRESETS: {
   name: string;
@@ -222,6 +230,46 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, imagePanX: action.value };
     case 'SET_IMAGE_PAN_Y':
       return { ...state, imagePanY: action.value };
+
+    case 'SET_PAINT_CELLS': {
+      // Cells already include mirrored positions from the paint hook
+      const grid = state.paintGrid.map(r => [...r]);
+      const w = state.paintGridWidth;
+      const h = state.paintGridHeight;
+      for (const cell of action.cells) {
+        const { row, col, value } = cell;
+        if (row >= 0 && row < h && col >= 0 && col < w) {
+          grid[row][col] = value;
+        }
+      }
+      return { ...state, paintGrid: grid };
+    }
+
+    case 'CLEAR_PAINT_GRID':
+      return { ...state, paintGrid: createEmptyGrid(state.paintGridWidth, state.paintGridHeight) };
+
+    case 'FILL_PAINT_GRID':
+      return { ...state, paintGrid: Array.from({ length: state.paintGridHeight }, () => Array(state.paintGridWidth).fill(1)) };
+
+    case 'SET_PAINT_GRID':
+      return { ...state, paintGrid: action.grid };
+
+    case 'SET_PAINT_GRID_SIZE':
+      return {
+        ...state,
+        paintGridWidth: action.width,
+        paintGridHeight: action.height,
+        paintGrid: createEmptyGrid(action.width, action.height),
+      };
+
+    case 'SET_PAINT_SYMMETRY':
+      return { ...state, paintSymmetry: action.symmetry };
+
+    case 'SET_PAINT_TOOL':
+      return { ...state, paintTool: action.tool };
+
+    case 'SET_PAINT_BRUSH_SIZE':
+      return { ...state, paintBrushSize: action.size };
 
     default:
       return state;

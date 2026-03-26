@@ -59,19 +59,19 @@ function StopEditor({
   };
 
   return (
-    <div className="space-y-1.5 pl-1 border-l border-border/40 ml-1">
+    <div className="space-y-2 pl-2 border-l-2 border-primary/20 ml-1">
       {/* Gradient bar */}
       <div
         ref={barRef}
-        className="h-4 rounded-sm relative cursor-crosshair border border-border"
+        className="h-5 rounded relative cursor-crosshair border border-border"
         style={{ background: gradientToCSS(stops) }}
         onClick={handleBarClick}
       >
         {stops.map((stop, i) => (
           <div
             key={i}
-            className={`absolute top-0 h-full w-1.5 -translate-x-1/2 rounded-sm border cursor-grab ${
-              i === safeIdx ? 'border-white' : 'border-white/40'
+            className={`absolute top-0 h-full w-2 -translate-x-1/2 rounded-sm border-2 cursor-grab transition-colors ${
+              i === safeIdx ? 'border-white shadow-sm' : 'border-white/40'
             }`}
             style={{
               left: `${stop.position * 100}%`,
@@ -87,7 +87,7 @@ function StopEditor({
         ))}
       </div>
       {/* Stop controls */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <input
           type="color"
           value={stops[safeIdx]?.color ?? '#000000'}
@@ -97,19 +97,19 @@ function StopEditor({
             );
             onChangeStops(next);
           }}
-          className="h-5 w-6 rounded-sm border border-border bg-transparent cursor-pointer p-0"
+          className="h-6 w-7 rounded border border-border bg-transparent cursor-pointer p-0"
         />
-        <span className="text-[9px] text-muted-foreground">
+        <span className="text-[10px] text-muted-foreground tabular-nums">
           {stops.length} stops
         </span>
         <Button
           variant="outline"
-          size="sm"
-          className="text-[9px] h-5 px-1.5 ml-auto"
+          size="xs"
+          className="ml-auto text-[10px]"
           onClick={handleRemove}
           disabled={stops.length <= 2}
         >
-          Remove stop
+          Remove
         </Button>
       </div>
     </div>
@@ -121,7 +121,6 @@ export function PaletteEditor({ palette, onChange }: PaletteEditorProps) {
 
   const solids = palette.filter(e => e.id.startsWith('solid-'));
   const gradients = palette.filter(e => e.id.startsWith('grad-'));
-  // Custom entries (e.g. from image layer presets)
   const custom = palette.filter(e => !e.id.startsWith('solid-') && !e.id.startsWith('grad-'));
 
   const selectedCount = palette.filter(e => e.selected).length;
@@ -129,7 +128,6 @@ export function PaletteEditor({ palette, onChange }: PaletteEditorProps) {
   const toggleEntry = (id: string) => {
     const entry = palette.find(e => e.id === id);
     if (!entry) return;
-    // Prevent deselecting the last selected entry
     if (entry.selected && selectedCount <= 1) return;
     const next = palette.map(e =>
       e.id === id ? { ...e, selected: !e.selected } : e
@@ -147,141 +145,81 @@ export function PaletteEditor({ palette, onChange }: PaletteEditorProps) {
   const isSolid = (entry: PaletteEntry) =>
     entry.stops.length === 2 && entry.stops[0].color === entry.stops[1].color;
 
-  return (
-    <div className="space-y-2">
-      {/* Solid colors */}
-      <div>
-        <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Solids</div>
-        <div className="grid grid-cols-4 gap-1.5">
-          {solids.map(entry => (
-            <button
-              key={entry.id}
-              className={`h-6 rounded-sm border-2 transition-all cursor-pointer relative ${
-                entry.selected
-                  ? 'border-white ring-1 ring-white/30'
-                  : 'border-transparent opacity-50 hover:opacity-80'
-              }`}
-              style={{ background: entry.stops[0].color }}
-              title={entry.name}
-              onClick={() => toggleEntry(entry.id)}
-            >
-              {entry.selected && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round"
-                      style={{ color: isLightColor(entry.stops[0].color) ? '#000' : '#fff' }} />
-                  </svg>
+  const renderSwatchGrid = (entries: PaletteEntry[], cols: string) => (
+    <div className={`grid ${cols} gap-2`}>
+      {entries.map(entry => (
+        <div key={entry.id}>
+          <button
+            className={`h-7 w-full rounded border-2 transition-all cursor-pointer relative ${
+              entry.selected
+                ? 'border-white/80 ring-1 ring-primary/30 shadow-sm'
+                : 'border-transparent opacity-40 hover:opacity-70'
+            }`}
+            style={{ background: gradientToCSS(entry.stops) }}
+            title={entry.name}
+            onClick={() => toggleEntry(entry.id)}
+          >
+            {entry.selected && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ color: entry.id.startsWith('solid-') && isLightColor(entry.stops[0].color) ? '#000' : '#fff' }} />
+                </svg>
+              </div>
+            )}
+          </button>
+          {/* Expand/collapse for stop editing (gradients & custom only) */}
+          {entry.selected && !entry.id.startsWith('solid-') && (
+            <div className="mt-1.5">
+              <button
+                className="text-[10px] text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+                onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
+              >
+                {expandedId === entry.id ? '- Edit stops' : '+ Edit stops'}
+                {!isSolid(entry) && entry.stops.length > 2 && (
+                  <span className="text-primary/50 ml-1">({entry.stops.length})</span>
+                )}
+              </button>
+              {expandedId === entry.id && (
+                <div className="mt-1.5">
+                  <StopEditor
+                    entry={entry}
+                    onChangeStops={(stops) => updateEntryStops(entry.id, stops)}
+                  />
                 </div>
               )}
-            </button>
-          ))}
+            </div>
+          )}
         </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      {/* Solid colors */}
+      <div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Solids</div>
+        {renderSwatchGrid(solids, 'grid-cols-4')}
       </div>
 
       {/* Gradients */}
       <div>
-        <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Gradients</div>
-        <div className="grid grid-cols-3 gap-1.5">
-          {gradients.map(entry => (
-            <div key={entry.id}>
-              <button
-                className={`h-6 w-full rounded-sm border-2 transition-all cursor-pointer relative ${
-                  entry.selected
-                    ? 'border-white ring-1 ring-white/30'
-                    : 'border-transparent opacity-50 hover:opacity-80'
-                }`}
-                style={{ background: gradientToCSS(entry.stops) }}
-                title={entry.name}
-                onClick={() => toggleEntry(entry.id)}
-              >
-                {entry.selected && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2">
-                      <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                )}
-              </button>
-              {/* Expand/collapse for stop editing */}
-              {entry.selected && (
-                <div className="mt-1">
-                  <button
-                    className="text-[9px] text-muted-foreground hover:text-foreground transition-colors w-full text-left"
-                    onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                  >
-                    {expandedId === entry.id ? '▾ Edit stops' : '▸ Edit stops'}
-                    {!isSolid(entry) && entry.stops.length > 2 && (
-                      <span className="text-primary/60 ml-1">({entry.stops.length})</span>
-                    )}
-                  </button>
-                  {expandedId === entry.id && (
-                    <div className="mt-1">
-                      <StopEditor
-                        entry={entry}
-                        onChangeStops={(stops) => updateEntryStops(entry.id, stops)}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Gradients</div>
+        {renderSwatchGrid(gradients, 'grid-cols-3')}
       </div>
 
-      {/* Custom entries (from image layer presets etc.) */}
+      {/* Custom entries */}
       {custom.length > 0 && (
         <div>
-          <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Custom</div>
-          <div className="grid grid-cols-3 gap-1.5">
-            {custom.map(entry => (
-              <div key={entry.id}>
-                <button
-                  className={`h-6 w-full rounded-sm border-2 transition-all cursor-pointer relative ${
-                    entry.selected
-                      ? 'border-white ring-1 ring-white/30'
-                      : 'border-transparent opacity-50 hover:opacity-80'
-                  }`}
-                  style={{ background: gradientToCSS(entry.stops) }}
-                  title={entry.name}
-                  onClick={() => toggleEntry(entry.id)}
-                >
-                  {entry.selected && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2">
-                        <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  )}
-                </button>
-                {entry.selected && (
-                  <div className="mt-1">
-                    <button
-                      className="text-[9px] text-muted-foreground hover:text-foreground transition-colors w-full text-left"
-                      onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                    >
-                      {expandedId === entry.id ? '▾ Edit stops' : '▸ Edit stops'}
-                    </button>
-                    {expandedId === entry.id && (
-                      <div className="mt-1">
-                        <StopEditor
-                          entry={entry}
-                          onChangeStops={(stops) => updateEntryStops(entry.id, stops)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Custom</div>
+          {renderSwatchGrid(custom, 'grid-cols-3')}
         </div>
       )}
     </div>
   );
 }
 
-/** Returns true if a hex color is light (for contrast check on checkmark) */
 function isLightColor(hex: string): boolean {
   const h = hex.replace('#', '');
   const r = parseInt(h.slice(0, 2), 16);

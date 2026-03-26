@@ -1,5 +1,5 @@
 import type { AppState, LayerState } from './state';
-import { createDefaultState, createDefaultLayer } from './state';
+import { createDefaultState, createDefaultLayer, createEmptyGrid } from './state';
 import { createDefaultPalette } from './gradient';
 import type { GradientStop, PaletteEntry } from './gradient';
 
@@ -29,6 +29,12 @@ interface SerializedState {
   imageScale?: number;
   imagePanX?: number;
   imagePanY?: number;
+  paintGrid?: number[][];
+  paintGridWidth?: number;
+  paintGridHeight?: number;
+  paintSymmetry?: string;
+  paintTool?: string;
+  paintBrushSize?: number;
   layers: SerializedLayer[];
   // Legacy fields (pre per-layer resolution)
   resolution?: number;
@@ -54,6 +60,12 @@ export function serializeState(state: AppState): SerializedState {
     imageScale: state.imageScale,
     imagePanX: state.imagePanX,
     imagePanY: state.imagePanY,
+    paintGrid: state.paintGrid,
+    paintGridWidth: state.paintGridWidth,
+    paintGridHeight: state.paintGridHeight,
+    paintSymmetry: state.paintSymmetry,
+    paintTool: state.paintTool,
+    paintBrushSize: state.paintBrushSize,
     layers: state.layers.map(l => ({
       ...l,
       toggledCells: Array.from(l.toggledCells),
@@ -89,6 +101,12 @@ export function deserializeState(data: SerializedState): AppState {
     imageScale: data.imageScale ?? defaults.imageScale,
     imagePanX: data.imagePanX ?? defaults.imagePanX,
     imagePanY: data.imagePanY ?? defaults.imagePanY,
+    paintGridWidth: data.paintGridWidth ?? defaults.paintGridWidth,
+    paintGridHeight: data.paintGridHeight ?? defaults.paintGridHeight,
+    paintGrid: data.paintGrid ?? createEmptyGrid(data.paintGridWidth ?? 24, data.paintGridHeight ?? 24),
+    paintSymmetry: (data.paintSymmetry as AppState['paintSymmetry']) ?? defaults.paintSymmetry,
+    paintTool: (data.paintTool as AppState['paintTool']) ?? defaults.paintTool,
+    paintBrushSize: data.paintBrushSize ?? defaults.paintBrushSize,
     seed: data.seed ?? defaults.seed,
     layers: (data.layers ?? []).map(l => {
       const toggledArr = (l.toggledCells as string[] | undefined) ?? [];
@@ -183,6 +201,12 @@ export function applyState(target: AppState, source: AppState): void {
   target.imagePanX = source.imagePanX;
   target.imagePanY = source.imagePanY;
   target.seed = source.seed;
+  target.paintGrid = source.paintGrid;
+  target.paintGridWidth = source.paintGridWidth;
+  target.paintGridHeight = source.paintGridHeight;
+  target.paintSymmetry = source.paintSymmetry;
+  target.paintTool = source.paintTool;
+  target.paintBrushSize = source.paintBrushSize;
   target.layers = source.layers;
 }
 

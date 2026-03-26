@@ -20,6 +20,22 @@ export const BLEND_MODES: { value: string; label: string }[] = [
 
 export type ChannelSource = 'noise' | 'image';
 
+export type PaintSymmetry = 'none' | 'mirror-x' | 'mirror-y' | 'quad';
+export type PaintTool = 'pen' | 'eraser';
+
+export const PAINT_GRID_PRESETS: { label: string; w: number; h: number }[] = [
+  { label: '6 × 6', w: 6, h: 6 },
+  { label: '12 × 12', w: 12, h: 12 },
+  { label: '24 × 24', w: 24, h: 24 },
+  { label: '32 × 32', w: 32, h: 32 },
+  { label: '48 × 48', w: 48, h: 48 },
+  { label: '70 × 24 (Lockup)', w: 70, h: 24 },
+];
+
+export function createEmptyGrid(width: number, height: number): number[][] {
+  return Array.from({ length: height }, () => Array(width).fill(0));
+}
+
 export interface LayerState {
   id: string;
   name: string;
@@ -139,6 +155,14 @@ export interface AppState {
   imageLevelsBlack: number;   // 0–1 input black point
   imageLevelsWhite: number;   // 0–1 input white point
   imageLevelsGamma: number;   // 0.2–5 midtone gamma
+
+  // Paint mode
+  paintGrid: number[][];
+  paintGridWidth: number;
+  paintGridHeight: number;
+  paintSymmetry: PaintSymmetry;
+  paintTool: PaintTool;
+  paintBrushSize: number; // 1, 2, 3, 4, 5 — width in grid cells
 }
 
 let layerIdCounter = 0;
@@ -193,7 +217,7 @@ export function createDefaultLayer(name: string): LayerState {
 export function createDefaultState(): AppState {
   return {
     mask: 'full',
-    backgroundColor: '#f5f2eb',
+    backgroundColor: '#000000',
     showGrid: true,
     imageElement: null,
     imageGridSize: 50,
@@ -211,5 +235,11 @@ export function createDefaultState(): AppState {
     imageLevelsBlack: 0,
     imageLevelsWhite: 1,
     imageLevelsGamma: 1,
+    paintGrid: createEmptyGrid(24, 24),
+    paintGridWidth: 24,
+    paintGridHeight: 24,
+    paintSymmetry: 'none',
+    paintTool: 'pen',
+    paintBrushSize: 1,
   };
 }
