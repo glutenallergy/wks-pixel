@@ -322,7 +322,8 @@ function drawGridLines(
   const { totalCols, totalRows, cellSize, padding } = layout;
 
   if (cellSize >= 3) {
-    ctx.strokeStyle = 'rgba(128, 128, 128, 0.08)';
+    // More visible grid in paint mode so users can see the drawing surface
+    ctx.strokeStyle = mask === 'paint' ? 'rgba(128, 128, 128, 0.25)' : 'rgba(128, 128, 128, 0.08)';
     ctx.lineWidth = 0.5;
     for (let c = 0; c <= totalCols; c++) {
       ctx.beginPath();
@@ -370,33 +371,7 @@ function drawPaintOverlay(
   const grid = state.paintGrid;
   if (!grid || grid.length === 0) return;
 
-  // Draw subtle highlight on painted cells
-  const cw = maxRes * cellSize; // cell width/height in base-grid units
-  ctx.fillStyle = 'rgba(73, 182, 255, 0.08)';
-  for (let bRow = 0; bRow < grid.length; bRow++) {
-    for (let bCol = 0; bCol < grid[0].length; bCol++) {
-      if (grid[bRow][bCol] === 1) {
-        const x = (padding + bCol * maxRes) * cellSize;
-        const y = (padding + bRow * maxRes) * cellSize;
-        ctx.fillRect(x, y, cw, cw);
-      }
-    }
-  }
-
-  // Draw border on painted cells for clarity — align to grid lines
-  ctx.strokeStyle = 'rgba(73, 182, 255, 0.15)';
-  ctx.lineWidth = 1;
-  for (let bRow = 0; bRow < grid.length; bRow++) {
-    for (let bCol = 0; bCol < grid[0].length; bCol++) {
-      if (grid[bRow][bCol] === 1) {
-        const x = Math.round((padding + bCol * maxRes) * cellSize);
-        const y = Math.round((padding + bRow * maxRes) * cellSize);
-        const x2 = Math.round((padding + (bCol + 1) * maxRes) * cellSize);
-        const y2 = Math.round((padding + (bRow + 1) * maxRes) * cellSize);
-        ctx.strokeRect(x + 0.5, y + 0.5, x2 - x - 1, y2 - y - 1);
-      }
-    }
-  }
+  // No fill/border overlay on painted cells — the rendered shapes are the visual feedback
 
   // Draw symmetry axis lines
   const ox = Math.round(padding * cellSize);
