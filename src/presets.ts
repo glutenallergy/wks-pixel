@@ -35,6 +35,8 @@ interface SerializedState {
   paintSymmetry?: string;
   paintTool?: string;
   paintBrushSize?: number;
+  canvasGridWidth?: number;
+  canvasGridHeight?: number;
   layers: SerializedLayer[];
   // Legacy fields (pre per-layer resolution)
   resolution?: number;
@@ -66,6 +68,8 @@ export function serializeState(state: AppState): SerializedState {
     paintSymmetry: state.paintSymmetry,
     paintTool: state.paintTool,
     paintBrushSize: state.paintBrushSize,
+    canvasGridWidth: state.canvasGridWidth,
+    canvasGridHeight: state.canvasGridHeight,
     layers: state.layers.map(l => ({
       ...l,
       toggledCells: Array.from(l.toggledCells),
@@ -107,6 +111,8 @@ export function deserializeState(data: SerializedState): AppState {
     paintSymmetry: (data.paintSymmetry as AppState['paintSymmetry']) ?? defaults.paintSymmetry,
     paintTool: (data.paintTool as AppState['paintTool']) ?? defaults.paintTool,
     paintBrushSize: data.paintBrushSize ?? defaults.paintBrushSize,
+    canvasGridWidth: data.canvasGridWidth ?? defaults.canvasGridWidth,
+    canvasGridHeight: data.canvasGridHeight ?? defaults.canvasGridHeight,
     seed: data.seed ?? defaults.seed,
     layers: (data.layers ?? []).map(l => {
       const toggledArr = (l.toggledCells as string[] | undefined) ?? [];
