@@ -225,7 +225,7 @@ export function exportSVG(state: AppState, comp: CompositingInfo): void {
 
     // Build mask lookup for this layer
     const imgDim = state.mask === 'image' ? getImageGridDimensions(state.imageGridSize, state.imageAspectRatio) : undefined;
-    const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid);
+    const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid, state.canvasGridWidth, state.canvasGridHeight);
     const maskLookup = new Uint8Array(totalCols * totalRows);
     for (let row = 0; row < totalRows; row++) {
       for (let col = 0; col < totalCols; col++) {

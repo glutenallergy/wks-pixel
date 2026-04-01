@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { AppState, LayerState, ChannelSource, PaintSymmetry, PaintTool } from '../state';
-import { BLEND_MODES, createDefaultLayer, IMAGE_ASPECT_RATIOS, PAINT_GRID_PRESETS } from '../state';
+import { BLEND_MODES, createDefaultLayer, IMAGE_ASPECT_RATIOS, PAINT_GRID_PRESETS, CANVAS_SIZE_PRESETS } from '../state';
 import type { AppAction } from '../lib/actions';
 import type { MaskType } from '../masks';
 import type { SymbolType } from '../symbols';
@@ -261,6 +261,58 @@ export function Panel({ state, dispatch, onExportPNG, onExportSVG, onExportVideo
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
+
+        {/* Canvas size controls */}
+        {state.mask === 'full' && (
+          <ControlCard>
+            <div className="space-y-2">
+              <div className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">Size</div>
+              <Select
+                value={`${state.canvasGridWidth}x${state.canvasGridHeight}`}
+                onValueChange={(v) => {
+                  const preset = CANVAS_SIZE_PRESETS.find(p => `${p.w}x${p.h}` === v);
+                  if (preset) dispatch({ type: 'SET_CANVAS_SIZE', width: preset.w, height: preset.h });
+                }}
+              >
+                <SelectTrigger className="h-7 text-[11px]">
+                  <SelectValue>
+                    {CANVAS_SIZE_PRESETS.find(p => p.w === state.canvasGridWidth && p.h === state.canvasGridHeight)?.label
+                      ?? `${state.canvasGridWidth} × ${state.canvasGridHeight}`}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {CANVAS_SIZE_PRESETS.map(p => (
+                    <SelectItem key={`${p.w}x${p.h}`} value={`${p.w}x${p.h}`} className="text-[11px]">{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-2">
+                <Label className="text-[10px] text-muted-foreground">W</Label>
+                <input
+                  type="number"
+                  min={4} max={200}
+                  value={state.canvasGridWidth}
+                  onChange={(e) => {
+                    const w = Math.max(4, Math.min(200, parseInt(e.target.value) || 70));
+                    dispatch({ type: 'SET_CANVAS_SIZE', width: w, height: state.canvasGridHeight });
+                  }}
+                  className="h-7 w-14 rounded border border-border bg-transparent text-[11px] text-center tabular-nums px-1"
+                />
+                <Label className="text-[10px] text-muted-foreground">H</Label>
+                <input
+                  type="number"
+                  min={4} max={200}
+                  value={state.canvasGridHeight}
+                  onChange={(e) => {
+                    const h = Math.max(4, Math.min(200, parseInt(e.target.value) || 24));
+                    dispatch({ type: 'SET_CANVAS_SIZE', width: state.canvasGridWidth, height: h });
+                  }}
+                  className="h-7 w-14 rounded border border-border bg-transparent text-[11px] text-center tabular-nums px-1"
+                />
+              </div>
+            </div>
+          </ControlCard>
+        )}
 
         {/* Paint controls */}
         {state.mask === 'paint' && (

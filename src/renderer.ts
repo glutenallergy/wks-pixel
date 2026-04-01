@@ -63,7 +63,7 @@ function getOffscreen(id: string, w: number, h: number): HTMLCanvasElement {
 
 export function computeCompositingLayout(state: AppState, canvasW: number, canvasH: number): CompositingInfo {
   const imgDim = state.mask === 'image' ? getImageGridDimensions(state.imageGridSize, state.imageAspectRatio) : undefined;
-  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid);
+  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid, state.canvasGridWidth, state.canvasGridHeight);
   const baseCols = maskData[0].length;
   const baseRows = maskData.length;
 
@@ -157,7 +157,7 @@ function buildMaskLookup(
 ): Uint8Array {
   const { totalCols, totalRows, padding, baseCols, baseRows } = layout;
   const imgDim = state.mask === 'image' ? getImageGridDimensions(state.imageGridSize, state.imageAspectRatio) : undefined;
-  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid);
+  const maskData = getMaskData(state.mask, state.imageGridSize, imgDim?.cols, imgDim?.rows, state.paintGrid, state.canvasGridWidth, state.canvasGridHeight);
   const lookup = new Uint8Array(totalCols * totalRows);
   const contentCols = baseCols * layer.resolution;
 

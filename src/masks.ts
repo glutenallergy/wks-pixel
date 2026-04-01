@@ -57,13 +57,13 @@ export const ICON_MASK: number[][] = [
 // Cache for image mask grids (keyed by "cols x rows")
 const imageMaskCache = new Map<string, number[][]>();
 
-export function getMaskData(mask: MaskType, imageGridSize: number = 50, imageCols?: number, imageRows?: number, paintGrid?: number[][]): number[][] {
+export function getMaskData(mask: MaskType, imageGridSize: number = 50, imageCols?: number, imageRows?: number, paintGrid?: number[][], canvasCols?: number, canvasRows?: number): number[][] {
   switch (mask) {
     case 'lockup': return LOCKUP_MASK;
     case 'icon': return ICON_MASK;
     case 'full': {
-      const rows = LOCKUP_MASK.length;
-      const cols = LOCKUP_MASK[0].length;
+      const rows = canvasRows ?? LOCKUP_MASK.length;
+      const cols = canvasCols ?? LOCKUP_MASK[0].length;
       return Array.from({ length: rows }, () => Array(cols).fill(1));
     }
     case 'image': {
@@ -84,7 +84,7 @@ export function getMaskData(mask: MaskType, imageGridSize: number = 50, imageCol
   }
 }
 
-export function getMaskDimensions(mask: MaskType, imageGridSize: number = 50, imageCols?: number, imageRows?: number, paintGrid?: number[][]): { cols: number; rows: number } {
-  const data = getMaskData(mask, imageGridSize, imageCols, imageRows, paintGrid);
+export function getMaskDimensions(mask: MaskType, imageGridSize: number = 50, imageCols?: number, imageRows?: number, paintGrid?: number[][], canvasCols?: number, canvasRows?: number): { cols: number; rows: number } {
+  const data = getMaskData(mask, imageGridSize, imageCols, imageRows, paintGrid, canvasCols, canvasRows);
   return { cols: data[0].length, rows: data.length };
 }

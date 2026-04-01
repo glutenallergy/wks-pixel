@@ -32,6 +32,15 @@ export const PAINT_GRID_PRESETS: { label: string; w: number; h: number }[] = [
   { label: '70 × 24 (Lockup)', w: 70, h: 24 },
 ];
 
+export const CANVAS_SIZE_PRESETS: { label: string; w: number; h: number }[] = [
+  { label: '70 × 24 (Lockup)', w: 70, h: 24 },
+  { label: '24 × 24', w: 24, h: 24 },
+  { label: '32 × 32', w: 32, h: 32 },
+  { label: '48 × 48', w: 48, h: 48 },
+  { label: '64 × 32', w: 64, h: 32 },
+  { label: '80 × 40', w: 80, h: 40 },
+];
+
 export function createEmptyGrid(width: number, height: number): number[][] {
   return Array.from({ length: height }, () => Array(width).fill(0));
 }
@@ -126,6 +135,10 @@ export interface AppState {
   backgroundColor: string;
   showGrid: boolean;
 
+  // Canvas size (for 'full' mask mode)
+  canvasGridWidth: number;
+  canvasGridHeight: number;
+
   // Image source (for 'image' mask type)
   imageElement: HTMLImageElement | null;
   imageGridSize: number;
@@ -219,6 +232,8 @@ export function createDefaultState(): AppState {
     mask: 'full',
     backgroundColor: '#000000',
     showGrid: true,
+    canvasGridWidth: 70,
+    canvasGridHeight: 24,
     imageElement: null,
     imageGridSize: 50,
     imageAspectRatio: '1:1',

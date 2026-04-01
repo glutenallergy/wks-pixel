@@ -6,7 +6,10 @@ import { autoSaveState, autoLoadState } from '../presets';
 
 function initState(): AppState {
   const restored = autoLoadState();
-  return restored ?? createDefaultState();
+  if (!restored) return createDefaultState();
+  // Merge defaults so newly added fields are present when loading old saved state
+  const defaults = createDefaultState();
+  return { ...defaults, ...restored };
 }
 
 export function useAppState() {

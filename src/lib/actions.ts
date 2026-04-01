@@ -42,7 +42,8 @@ export type AppAction =
   | { type: 'SET_PAINT_GRID_SIZE'; width: number; height: number }
   | { type: 'SET_PAINT_SYMMETRY'; symmetry: PaintSymmetry }
   | { type: 'SET_PAINT_TOOL'; tool: PaintTool }
-  | { type: 'SET_PAINT_BRUSH_SIZE'; size: number };
+  | { type: 'SET_PAINT_BRUSH_SIZE'; size: number }
+  | { type: 'SET_CANVAS_SIZE'; width: number; height: number };
 
 const IMAGE_LAYER_PRESETS: {
   name: string;
@@ -314,6 +315,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         layers: state.layers.map(l =>
           l.id === action.layerId ? randomizeLayer(l) : l
         ),
+      };
+
+    case 'SET_CANVAS_SIZE':
+      return {
+        ...state,
+        canvasGridWidth: action.width,
+        canvasGridHeight: action.height,
+        layers: state.layers.map(l => ({ ...l, toggledCells: new Set<string>() })),
       };
 
     default:
