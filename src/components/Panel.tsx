@@ -41,6 +41,7 @@ import {
   RiVideoLine,
   RiPencilLine,
   RiEraserLine,
+  RiShuffleLine,
 } from '@remixicon/react';
 
 import { SliderField } from './SliderField';
@@ -586,6 +587,12 @@ export function Panel({ state, dispatch, onExportPNG, onExportSVG, onExportVideo
                     disabled={idx <= 0}
                     onClick={(e) => { e.stopPropagation(); dispatch({ type: 'REORDER_LAYER', fromIdx: idx, toIdx: idx - 1 }); }}>
                     <RiArrowDownSLine className="h-3.5 w-3.5" />
+                  </Button>
+
+                  <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground"
+                    title="Randomize layer"
+                    onClick={(e) => { e.stopPropagation(); dispatch({ type: 'RANDOMIZE_LAYER', layerId: layer.id }); }}>
+                    <RiShuffleLine className="h-3.5 w-3.5" />
                   </Button>
 
                   {state.layers.length > 1 && state.mask !== 'image' && (

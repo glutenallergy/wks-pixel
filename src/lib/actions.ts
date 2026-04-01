@@ -1,5 +1,6 @@
 import type { AppState, LayerState, ChannelSource, PaintSymmetry, PaintTool } from '../state';
 import type { SymbolType } from '../symbols';
+import { ALL_SYMBOLS } from '../symbols';
 import type { GradientStop, PaletteEntry } from '../gradient';
 import type { MaskType } from '../masks';
 import { createDefaultLayer, createEmptyGrid } from '../state';
@@ -22,6 +23,7 @@ export type AppAction =
   | { type: 'TOGGLE_CELL'; layerId: string; key: string }
   | { type: 'APPLY_STATE'; state: AppState }
   | { type: 'GENERATE_IMAGE_LAYERS'; count: number }
+  | { type: 'RANDOMIZE_LAYER'; layerId: string }
   | { type: 'SET_LOOP_ENABLED'; enabled: boolean }
   | { type: 'SET_LOOP_DURATION'; duration: number }
   | { type: 'SET_LOOP_RADIUS'; radius: number }
@@ -113,6 +115,41 @@ function generateImageLayers(count: number): LayerState[] {
     layers.push(layer);
   }
   return layers;
+}
+
+function randomizeLayer(layer: LayerState): LayerState {
+  const r = Math.random;
+
+  // Pick 1–4 random symbols
+  const shuffled = [...ALL_SYMBOLS].sort(() => r() - 0.5);
+  const symbolCount = 1 + Math.floor(r() * 4);
+  const activeSymbols = shuffled.slice(0, symbolCount);
+
+  // Randomize which palette entries are selected (1–3)
+  const palette = layer.colorPalette.map(e => ({ ...e, selected: false }));
+  const paletteCount = 1 + Math.floor(r() * Math.min(3, palette.length));
+  const paletteIdxs = [...palette.keys()].sort(() => r() - 0.5).slice(0, paletteCount);
+  paletteIdxs.forEach(i => { palette[i] = { ...palette[i], selected: true }; });
+
+  const scaleMin = parseFloat((r() * 0.6).toFixed(2));
+  const scaleMax = parseFloat((scaleMin + 0.2 + r() * (1 - scaleMin - 0.2)).toFixed(2));
+
+  return {
+    ...layer,
+    noiseScale: 1 + Math.floor(r() * 99),
+    noiseSpeed: Math.floor(r() * 200),
+    noiseOctaves: 1 + Math.floor(r() * 4),
+    symbolDriven: r() > 0.5,
+    colorDriven: r() > 0.3,
+    scaleDriven: r() > 0.5,
+    fillDriven: r() > 0.5,
+    fillCutoff: parseFloat((r() * 0.6).toFixed(2)),
+    scaleMin,
+    scaleMax,
+    strokeWeight: parseFloat((0.5 + r() * 4.5).toFixed(1)),
+    activeSymbols,
+    colorPalette: palette,
+  };
 }
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -270,6 +307,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'SET_PAINT_BRUSH_SIZE':
       return { ...state, paintBrushSize: action.size };
+
+    case 'RANDOMIZE_LAYER':
+      return {
+        ...state,
+        layers: state.layers.map(l =>
+          l.id === action.layerId ? randomizeLayer(l) : l
+        ),
+      };
 
     default:
       return state;
