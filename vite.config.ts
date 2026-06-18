@@ -11,4 +11,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'), // tab-switcher shell
+        v1: path.resolve(__dirname, 'v1.html'), // original Grid Engine
+        v2: path.resolve(__dirname, 'v2.html'), // Image → Grid
+      },
+    },
+  },
 });
